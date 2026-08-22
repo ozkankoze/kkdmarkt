@@ -191,6 +191,36 @@ export const featuredProducts = (() => {
   return picked.slice(0, 12);
 })();
 
+/**
+ * Anasayfa hero bölümündeki dört vitrin ürünü.
+ * Değiştirmek için aşağıdaki kategori sırasını düzenlemeniz yeterli.
+ */
+export const heroProducts = (() => {
+  const wanted = [
+    { slug: "is-guvenligi-baretleri", label: "Kafa Koruma" },
+    { slug: "nitril-is-eldivenleri", label: "El Koruma" },
+    { slug: "is-botlari", label: "Ayak Koruma" },
+    { slug: "kulak-koruyucu-donanimlar", label: "Kulak Koruma" },
+  ];
+  const taken = new Set<string>();
+  const out: { product: Product; label: string }[] = [];
+  for (const w of wanted) {
+    const p = productsByCategory(w.slug).find((x) => x.images.length && !taken.has(x.slug));
+    if (p) {
+      taken.add(p.slug);
+      out.push({ product: p, label: w.label });
+    }
+  }
+  for (const p of products) {
+    if (out.length >= 4) break;
+    if (p.images.length && !taken.has(p.slug)) {
+      taken.add(p.slug);
+      out.push({ product: p, label: p.brand || "KKD" });
+    }
+  }
+  return out.slice(0, 4);
+})();
+
 /** Kategori sayfalarında kullanılacak kapak görseli */
 export function categoryCover(slug: string) {
   return productsByCategory(slug)[0]?.images[0];

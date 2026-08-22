@@ -1,7 +1,7 @@
 import Link from "next/link";
-import ProductCard from "@/components/ProductCard";
+import ProductCard, { ProductImage } from "@/components/ProductCard";
 import { categoryGroups } from "@/data/categories";
-import { featuredProducts, groupCount, products } from "@/data/products";
+import { featuredProducts, groupCount, heroProducts, products } from "@/data/products";
 import { about, brands, highlights, site } from "@/data/site";
 import { wixImage } from "@/lib/img";
 
@@ -9,44 +9,109 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-neutral-900">
-        {site.hero && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={wixImage(site.hero, 1800, 900, 85)}
-            alt=""
-            className="absolute inset-0 size-full object-cover opacity-70"
-            fetchPriority="high"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28 lg:py-32">
-          <p className="mb-4 inline-flex rounded-full bg-brand px-3.5 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
-            Kişisel Koruyucu Donanım
-          </p>
-          <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl lg:text-6xl">
-            Güvenlik bir seçenek değil,{" "}
-            <span className="text-brand">zorunluluktur.</span>
-          </h1>
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-            Kaliteli KKD ürünleriyle çalışanlarınız güvende, işiniz emin ellerde.{" "}
-            {products.length}+ ürün, {categoryGroups.length} ana kategori.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/teklif-al"
-              className="rounded-full bg-brand px-6 py-3.5 font-semibold text-white transition hover:bg-brand-600"
-            >
-              Hemen Teklif Al
-            </Link>
-            <Link
-              href="/markalarimiz"
-              className="rounded-full border border-white/40 px-6 py-3.5 font-semibold text-white backdrop-blur transition hover:bg-white hover:text-ink"
-            >
-              Markalarımız
-            </Link>
+      <section className="relative overflow-hidden border-b border-line bg-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-40 -top-48 hidden size-[42rem] rounded-full bg-brand/[0.08] blur-3xl lg:block"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-32 bottom-[-14rem] hidden size-[26rem] rounded-full bg-brand/5 blur-3xl lg:block"
+        />
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 lg:grid-cols-[1.05fr_.95fr] lg:gap-16 lg:py-20">
+          <div>
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-50 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-brand">
+              <span className="size-1.5 rounded-full bg-brand" />
+              Kişisel Koruyucu Donanım
+            </p>
+            <h1 className="text-[2.6rem] font-extrabold leading-[1.02] tracking-tight text-ink sm:text-6xl">
+              Güvenlik bir seçenek değil,
+              <br />
+              <span className="text-brand">zorunluluktur.</span>
+            </h1>
+            <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-muted">
+              Baştan ayağa sertifikalı iş güvenliği ekipmanları. {products.length}+ ürün,{" "}
+              {categoryGroups.length} ana kategori, {brands.length}+ global marka — tek tedarikçiden.
+            </p>
+
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link
+                href="/teklif-al"
+                className="rounded-full bg-brand px-7 py-3.5 font-semibold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-600"
+              >
+                Hemen Teklif Al
+              </Link>
+              <a
+                href={`https://wa.me/${site.contact.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border-2 border-line px-7 py-3.5 font-semibold text-ink transition hover:border-brand hover:text-brand"
+              >
+                WhatsApp&apos;tan sor
+              </a>
+            </div>
+
+            <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-6 text-sm font-medium text-muted">
+              {["EN sertifikalı ürünler", "Toplu alım avantajı", "Hızlı tedarik"].map((t) => (
+                <li key={t} className="flex items-center gap-2">
+                  <svg
+                    className="size-4 text-brand"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="m5 13 4 4L19 7" />
+                  </svg>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Ürün vitrini */}
+          <div className="relative">
+            <div
+              aria-hidden
+              className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-brand via-brand-600 to-brand-700"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 rounded-[2rem] opacity-[0.06] [background-image:repeating-linear-gradient(45deg,#fff_0_18px,transparent_18px_44px)]"
+            />
+            <div className="relative grid grid-cols-2 gap-3 p-5 sm:gap-4 sm:p-7">
+              {heroProducts.map(({ product, label }) => (
+                <Link
+                  key={product.slug}
+                  href={`/product-page/${product.slug}`}
+                  className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg shadow-black/10 transition hover:-translate-y-1"
+                >
+                  <div className="aspect-square p-3">
+                    <ProductImage
+                      src={product.images[0]}
+                      alt={product.name}
+                      size={360}
+                      priority
+                      className="size-full object-contain"
+                    />
+                  </div>
+                  <span className="border-t border-line px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-brand">
+                    {label}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
+
+        <div
+          aria-hidden
+          className="h-2 w-full [background-image:repeating-linear-gradient(45deg,#fc111d_0_14px,#14181f_14px_28px)]"
+        />
       </section>
 
       {/* Güven bandı */}
