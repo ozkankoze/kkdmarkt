@@ -1,6 +1,11 @@
 import raw from "./products.json";
 import { allSubCategories, categoryGroups } from "./categories";
 
+export type Block =
+  | { t: "h"; x: string }
+  | { t: "p"; x: string }
+  | { t: "ul"; items: { x: string; sub?: string[] }[] };
+
 export type Product = {
   /** Wix ile aynı slug — /product-page/<slug> */
   slug: string;
@@ -9,7 +14,9 @@ export type Product = {
   /** Alt kategori slug'ları */
   categories: string[];
   images: string[];
-  /** Düz metin açıklama (satır satır) */
+  /** Yapısal açıklama blokları */
+  blocks: Block[];
+  /** Düz metin karşılığı (meta etiketleri ve arama için) */
   description: string;
   sku?: string;
   featured?: boolean;

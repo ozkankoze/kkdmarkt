@@ -87,28 +87,153 @@ function wixSlug(name = "") {
 const norm = (s = "") =>
   deTr(s).toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 
-function htmlToText(html = "") {
-  return html
-    .replace(/<\s*br\s*\/?>/gi, "\n")
-    .replace(/<\/\s*(p|div|h[1-6]|tr)\s*>/gi, "\n")
-    .replace(/<\s*li[^>]*>/gi, "• ")
-    .replace(/<\/\s*li\s*>/gi, "\n")
-    .replace(/<\/\s*(ul|ol)\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
+function decode(s = "") {
+  return s
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#0?39;|&rsquo;|&#8217;/g, "’")
-    .replace(/&#0?10;/g, "\n")
-    .replace(/&[a-z]+;/gi, " ")
-    .split("\n")
-    .map((l) => l.replace(/[ \t]+/g, " ").trim())
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/&#0?39;|&apos;|&rsquo;|&#8217;/g, "’")
+    .replace(/&ldquo;|&#8220;/g, "“")
+    .replace(/&rdquo;|&#8221;/g, "”")
+    .replace(/&ndash;|&#8211;/g, "–")
+    .replace(/&mdash;|&#8212;/g, "—")
+    .replace(/&hellip;/g, "…")
+    .replace(/&#0?10;/g, "\n");
+}
+
+const stripTags = (s = "") => decode(s.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
+
+/** Başlıklardan baştaki emoji ve süsleri temizler */
+function cleanHeading(t = "") {
+  return t
+    .replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}️‍\s•·\-–—]+/gu, "")
     .trim();
 }
+
+/**
+ * Wix'te aralarındaki boşluk kaybolmuş "Etiket: açıklama" dizilerini ayırır.
+ * Örn: "…güvenli kullanımHPPE + Likra iplik: Esnek…"
+ */
+function splitRunOn(text = "") {
+  if (text.length < 120 || (text.match(/:/g) || []).length < 3) return [text];
+  const parts = text
+    .split(/(?<=[a-zçğıöşü)\].])(?=[A-ZÇĞİÖŞÜ0-9][^:]{2,45}:)/u)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return parts.length > 2 ? parts : [text];
+}
+
+/** <li> etiketlerine iç içe <ul> derinliğini yazar */
+function markDepth(html) {
+  let depth = 0;
+  return html.replace(/<\s*(\/?)(ul|ol|li)\b[^>]*>/gi, (m, close, tag) => {
+    const t = tag.toLowerCase();
+    if (t === "li") return close ? "</li>" : `<li data-d="${Math.max(depth - 1, 0)}">`;
+    if (close) {
+      depth = Math.max(depth - 1, 0);
+      return "</ul>";
+    }
+    depth++;
+    return "<ul>";
+  });
+}
+
+/**
+ * Wix zengin metnini yapısal bloklara çevirir:
+ *   { t:"h", x }            başlık
+ *   { t:"p", x }            paragraf
+ *   { t:"ul", items:[{x, sub?:[…]}] }  madde listesi
+ */
+function parseBlocks(html = "") {
+  if (!html.trim()) return [];
+  const src = markDepth(html.replace(/\r?\n/g, ""));
+
+  const rows = [];
+  const re = /<li data-d="(\d+)">([\s\S]*?)<\/li>|<p[^>]*>([\s\S]*?)<\/p>|<h([1-6])[^>]*>([\s\S]*?)<\/h\4>/gi;
+  let m;
+  while ((m = re.exec(src))) {
+    if (m[1] !== undefined) {
+      // iç içe listeleri ayıkla: dış <li> yalnızca kendi metnini alsın
+      const inner = m[2].replace(/<ul>[\s\S]*?<\/ul>/gi, "");
+      const text = stripTags(inner);
+      if (text) rows.push({ kind: "li", depth: Number(m[1]), text });
+      continue;
+    }
+    if (m[3] !== undefined) {
+      const raw = m[3];
+      const text = stripTags(raw);
+      if (!text) continue;
+      const withoutBold = raw
+        .replace(/<span[^>]*font-weight:\s*(700|bold)[^>]*>[\s\S]*?<\/span>/gi, "")
+        .replace(/<(strong|b)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+      // Kalan metin yalnızca emoji / noktalama ise başlık sayılır (örn. "📝 Ürün Açıklaması")
+      const leftover = stripTags(withoutBold)
+        .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}️‍]/gu, "")
+        .replace(/[\s•·\-–—:|]/g, "");
+      const isBold =
+        /font-weight:\s*(700|bold)|<strong|<b\b/i.test(raw) && leftover === "";
+      if (isBold && text.length < 90) {
+        rows.push({ kind: "h", text: cleanHeading(text) });
+        continue;
+      }
+      // Wix'te boşluğu kaybolmuş "Etiket: açıklama" dizilerini maddelere ayır
+      const parts = splitRunOn(text);
+      if (parts.length > 1) {
+        for (const part of parts) rows.push({ kind: "li", depth: 0, text: part });
+        continue;
+      }
+      rows.push({ kind: "p", text });
+      continue;
+    }
+    if (m[5] !== undefined) {
+      const text = stripTags(m[5]);
+      if (text) rows.push({ kind: "h", text });
+    }
+  }
+
+  // <p>/<li> hiç yoksa düz metne düş
+  if (!rows.length) {
+    const t = stripTags(src);
+    return t ? [{ t: "p", x: t }] : [];
+  }
+
+  const blocks = [];
+  for (const r of rows) {
+    if (r.kind === "li") {
+      let list = blocks[blocks.length - 1];
+      if (!list || list.t !== "ul") {
+        list = { t: "ul", items: [] };
+        blocks.push(list);
+      }
+      if (r.depth > 0 && list.items.length) {
+        const parent = list.items[list.items.length - 1];
+        (parent.sub ??= []).push(r.text);
+      } else {
+        list.items.push({ x: r.text });
+      }
+    } else {
+      blocks.push({ t: r.kind, x: r.text });
+    }
+  }
+  return blocks;
+}
+
+/** Blokları meta açıklaması için düz metne çevirir */
+function blocksToText(blocks) {
+  return blocks
+    .map((b) => {
+      if (b.t === "ul")
+        return b.items
+          .map((i) => `• ${i.x}${i.sub ? "\n" + i.sub.map((s) => `  – ${s}`).join("\n") : ""}`)
+          .join("\n");
+      return b.x;
+    })
+    .join("\n\n")
+    .trim();
+}
+
 
 /* ---------------- kategori eşlemesi ---------------- */
 const catsSrc = readFileSync(join(__dirname, "../src/data/categories.ts"), "utf8");
@@ -290,6 +415,8 @@ for (const r of rows.slice(1)) {
       .join(";"),
   );
 
+  const blocks = C.description !== -1 ? parseBlocks(r[C.description]) : [];
+
   // yalnızca ana kategoriye bağlı ya da hiç kategorisi olmayan ürünler için tahmin
   const hasSub = cats.some((c) => !groupSlugs.has(c));
   if (!hasSub) {
@@ -303,7 +430,8 @@ for (const r of rows.slice(1)) {
     brand: C.brand !== -1 ? (r[C.brand] || "").trim() : "",
     categories: cats,
     images,
-    description: C.description !== -1 ? htmlToText(r[C.description]) : "",
+    blocks,
+    description: blocksToText(blocks),
     sku: C.sku !== -1 ? (r[C.sku] || "").trim() : "",
     featured: C.ribbon !== -1 ? Boolean((r[C.ribbon] || "").trim()) : false,
   });

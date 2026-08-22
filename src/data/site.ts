@@ -140,10 +140,6 @@ export const brands: Brand[] = [
     name: "Uvex",
     logo: "https://static.wixstatic.com/media/5ea3ff_c7bb912c43f04be7a7aee06c007daa46~mv2.png",
   },
-  {
-    name: "Univet",
-    logo: "https://static.wixstatic.com/media/5ea3ff_32fc1b3abb6848468c1cc0fb7817dba8~mv2.png",
-  },
 ];
 
 /** Footer'daki EN standardı rehber sayfaları — eski Wix slug'ları korundu. */

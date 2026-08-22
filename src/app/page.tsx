@@ -105,13 +105,13 @@ export default function HomePage() {
             {[...brands, ...brands].map((b, i) => (
               <div
                 key={`${b.name}-${i}`}
-                className="grid h-24 w-40 shrink-0 place-items-center rounded-xl border border-line bg-white px-5"
+                className="grid h-28 w-48 shrink-0 place-items-center overflow-hidden rounded-xl border border-line bg-white px-3"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={wixImage(b.logo, 220, 120, 90)}
+                  src={wixImage(b.logo, 380, 200, 90)}
                   alt={b.name}
-                  className="max-h-14 w-full object-contain"
+                  className="max-h-20 w-full scale-110 object-contain"
                   loading="lazy"
                 />
               </div>

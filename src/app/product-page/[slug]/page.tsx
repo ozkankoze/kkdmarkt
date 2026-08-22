@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import Gallery from "@/components/Gallery";
 import ProductCard from "@/components/ProductCard";
+import ProductDescription from "@/components/ProductDescription";
 import { findGroup, findSubCategory } from "@/data/categories";
 import { getProduct, products, productsByCategory, resolveSlug } from "@/data/products";
 import { site } from "@/data/site";
@@ -130,7 +131,9 @@ export default async function ProductPage({ params }: Params) {
             </div>
           </div>
 
-          <div className="prose-tr mt-8 text-[15px] text-ink/85">{p.description}</div>
+          <div className="mt-8">
+            <ProductDescription blocks={p.blocks} />
+          </div>
         </div>
       </div>
 

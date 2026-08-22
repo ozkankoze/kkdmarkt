@@ -51,7 +51,23 @@ for (const c of all) {
       brand,
       categories: [c.slug],
       images: [],
-      description: `📝 Ürün Açıklaması\nBu bir örnek kayıttır. Gerçek ürün verisi Wix export'u içe aktarıldığında burada görünecektir.\n\n⭐ Öne Çıkan Özellikler\n • ${c.name} kategorisinde profesyonel kullanım\n • İlgili EN standartlarına uygun\n • Dayanıklı ve konforlu yapı`,
+      blocks: [
+        { t: "h", x: "Ürün Açıklaması" },
+        {
+          t: "p",
+          x: "Bu bir örnek kayıttır. Gerçek ürün verisi Wix export'u içe aktarıldığında burada görünecektir.",
+        },
+        { t: "h", x: "Öne Çıkan Özellikler" },
+        {
+          t: "ul",
+          items: [
+            { x: `${c.name} kategorisinde profesyonel kullanım` },
+            { x: "İlgili EN standartlarına uygun" },
+            { x: "Dayanıklı ve konforlu yapı" },
+          ],
+        },
+      ],
+      description: `Bu bir örnek kayıttır. ${c.name} kategorisinde profesyonel kullanım için.`,
       sku: `DEMO-${String(n).padStart(4, "0")}`,
       featured: n % 37 === 0,
     });

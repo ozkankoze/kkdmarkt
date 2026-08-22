@@ -29,12 +29,12 @@ export default function BrandsPage() {
             (n) => n.toLocaleLowerCase("tr") === b.name.toLocaleLowerCase("tr"),
           );
           const card = (
-            <div className="grid h-32 place-items-center rounded-2xl border border-line bg-white p-5 transition hover:border-brand hover:shadow-lg hover:shadow-black/5">
+            <div className="grid h-36 place-items-center overflow-hidden rounded-2xl border border-line bg-white p-3 transition hover:border-brand hover:shadow-lg hover:shadow-black/5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={wixImage(b.logo, 260, 140, 90)}
+                src={wixImage(b.logo, 420, 240, 90)}
                 alt={b.name}
-                className="max-h-16 w-full object-contain"
+                className="max-h-28 w-full scale-110 object-contain"
                 loading="lazy"
               />
             </div>
