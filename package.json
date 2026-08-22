@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prebuild": "node scripts/build-search-index.mjs",
+    "predev": "node scripts/build-search-index.mjs",
+    "import:wix": "node scripts/import-wix-csv.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs"
   },
   "dependencies": {
     "next": "16.3.2",

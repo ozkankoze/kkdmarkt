@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KKDMARKT — Next.js Katalog Sitesi
 
-## Getting Started
+Wix'teki kkdmarkt.com sitesinin Next.js ile yeniden yazılmış, Vercel'e hazır sürümü.
+Kurumsal kimlik (kırmızı/beyaz, Wix Madefor tipografisi) korundu; düzen modernize edildi.
 
-First, run the development server:
+## Hızlı başlangıç
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # üretim derlemesi
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ürün verisini içe aktarma (Wix → site)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Wix panelinde **Katalog → Ürünler → ⋮ → Ürünleri Dışa Aktar** ile CSV indirin.
+2. Şunu çalıştırın:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run import:wix -- ~/Downloads/urunler.csv
+```
 
-## Learn More
+Script `src/data/products.json` dosyasını yeniden yazar ve konsola özet basar:
+kaç ürün geldiği, kategorisiz/görselsiz kalanlar ve **eşleşmeyen koleksiyon adları**.
+Eşleşmeyen bir koleksiyon varsa `src/data/categories.ts` içine ekleyin ve tekrar çalıştırın.
 
-To learn more about Next.js, take a look at the following resources:
+Demo veriye dönmek için: `npm run seed:demo`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Klasör yapısı
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/
+    page.tsx                     anasayfa
+    [slug]/page.tsx              kategori + alt kategori + standart sayfaları
+    product-page/[slug]/         ürün detay  (Wix ile aynı URL)
+    category/[slug]/             eski Wix mağaza adresleri → kalıcı yönlendirme
+    arama/  teklif-al/  hakkimizda/  markalarimiz/  iletisim/
+    sitemap.ts  robots.ts
+  components/                    Header, Footer, ProductCard, SearchBox, QuoteForm…
+  data/
+    categories.ts                menü ağacı (Wix ile birebir)
+    products.json                ürün verisi  ← import script'i buraya yazar
+    site.ts                      iletişim bilgileri, markalar, standart listesi
+    standards.ts                 EN standardı rehber sayfalarının metinleri
+scripts/
+  import-wix-csv.mjs             Wix CSV → products.json
+  build-search-index.mjs         public/search-index.json (arama için)
+  seed-demo.mjs                  geçici demo verisi
+```
 
-## Deploy on Vercel
+## Vercel'e yayınlama
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Bu klasörü bir GitHub reposuna yükleyin:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+git init && git add -A && git commit -m "KKDMARKT sitesi"
+git branch -M main
+git remote add origin https://github.com/<kullanici>/kkdmarkt.git
+git push -u origin main
+```
+
+2. [vercel.com/new](https://vercel.com/new) → repoyu seçin → **Deploy**.
+   Ayar gerekmez; Next.js otomatik algılanır.
+3. Vercel → Settings → Domains → `kkdmarkt.com` ve `www.kkdmarkt.com` ekleyin,
+   alan adı sağlayıcınızda DNS kayıtlarını Vercel'in verdiği değerlerle güncelleyin.
+
+> **Önemli:** Alan adını Vercel'e yönlendirmeden önce Wix sitesini kapatmayın;
+> yeni siteyi önce `xxx.vercel.app` adresinde kontrol edin.
+
+## Görseller hakkında
+
+Ürün ve marka görselleri şu an Wix'in CDN'inden (`static.wixstatic.com`)
+çekiliyor — hızlıdır ve ek maliyeti yoktur. Wix aboneliğini tamamen
+kapatmayı planlıyorsanız görselleri `public/` altına indirip
+`products.json` içindeki adresleri güncellemek gerekir.
+
+## Teklif formu
+
+Form şu an **WhatsApp** ve **e-posta** üzerinden gönderim yapıyor (sunucu gerekmez).
+Formu doğrudan e-posta olarak almak isterseniz Resend/Formspree gibi bir servis
+`src/components/QuoteForm.tsx` içine kolayca eklenebilir.
+
+## Korunan URL'ler (SEO)
+
+| Wix | Yeni site |
+| --- | --- |
+| `/product-page/<slug>` | aynı |
+| `/deri-is-eldivenleri` vb. 47 alt kategori | aynı |
+| `/el-koruma-urunleri`, `/ayak-koruma` vb. 9 ana kategori | aynı |
+| `/hakkimizda`, `/markalarimiz`, EN standardı sayfaları | aynı |
+| `/category/<wix-koleksiyon>` | ilgili kategoriye 301 yönlendirme |
