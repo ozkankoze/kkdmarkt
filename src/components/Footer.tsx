@@ -102,6 +102,17 @@ export default function Footer() {
             © {new Date().getFullYear()} {site.name}. Tüm hakları saklıdır.
           </p>
           <p>Fiyatlar ve stok durumu için lütfen teklif talebinde bulunun.</p>
+          <p>
+            Web tasarım:{" "}
+            <a
+              href="https://www.medya333.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-ink transition hover:text-brand"
+            >
+              Medya 333
+            </a>
+          </p>
         </div>
       </div>
     </footer>
